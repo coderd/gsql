@@ -6,9 +6,9 @@ const (
 )
 
 type Query interface {
-	GetQuery() string
-	GetArgs() []interface{}
-	GetReturnType() int
+	QueryString() string
+	Args() []interface{}
+	ReturnType() int
 }
 
 type query struct {
@@ -73,14 +73,14 @@ func (q *query) Delete() {
 	q.returnType = returnTypeWithoutRows
 }
 
-func (q *query) GetQuery() string {
+func (q *query) QueryString() string {
 	return "select number, square_number from square_num"
 }
 
-func (q *query) GetArgs() []interface{} {
+func (q *query) Args() []interface{} {
 	return []interface{}{}
 }
 
-func (q *query) GetReturnType() int {
+func (q *query) ReturnType() int {
 	return returnTypeRows
 }

@@ -21,11 +21,11 @@ func NewDB(driverName, dataSourceName string) (*DB, error) {
 }
 
 func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
-	queryString := query.GetQuery()
-	queryArgs := query.GetArgs()
-	queryReturnType := query.GetReturnType()
+	queryString := query.QueryString()
+	args := query.Args()
+	returnType := query.ReturnType()
 
-	if queryReturnType != returnTypeRows {
+	if returnType != returnTypeRows {
 		panic("You should use DB.ExecWithoutReturningRows() for this query")
 	}
 
@@ -33,7 +33,7 @@ func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := stmt.Query(queryArgs...)
+	rows, err := stmt.Query(args...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +44,10 @@ func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
 }
 
 func (db *DB) ExecWithoutReturningRows(query Query) (sql.Result, error) {
-	queryString := query.GetQuery()
-	queryArgs := query.GetArgs()
-	queryReturnType := query.GetReturnType()
-	if queryReturnType != returnTypeWithoutRows {
+	queryString := query.QueryString()
+	args := query.Args()
+	returnType := query.ReturnType()
+	if returnType != returnTypeWithoutRows {
 		panic("You should use DB.ExecReturningRows() for this query")
 	}
 
@@ -56,7 +56,7 @@ func (db *DB) ExecWithoutReturningRows(query Query) (sql.Result, error) {
 		return nil, err
 	}
 
-	return stmt.Exec(queryArgs...)
+	return stmt.Exec(args...)
 }
 
 func (db *DB) formatRows(rows *sql.Rows) ([]map[string]interface{}, error) {
