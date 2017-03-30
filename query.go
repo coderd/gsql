@@ -6,7 +6,7 @@ const (
 )
 
 type Query interface {
-	QueryString() string
+	String() string
 	Args() []interface{}
 	ReturnType() int
 }
@@ -73,7 +73,7 @@ func (q *query) Delete() {
 	q.returnType = returnTypeWithoutRows
 }
 
-func (q *query) QueryString() string {
+func (q *query) String() string {
 	return "select number, square_number from square_num"
 }
 

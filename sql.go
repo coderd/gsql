@@ -21,7 +21,7 @@ func NewDB(driverName, dataSourceName string) (*DB, error) {
 }
 
 func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
-	queryString := query.QueryString()
+	queryString := query.String()
 	args := query.Args()
 	returnType := query.ReturnType()
 
@@ -44,7 +44,7 @@ func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
 }
 
 func (db *DB) ExecWithoutReturningRows(query Query) (sql.Result, error) {
-	queryString := query.QueryString()
+	queryString := query.String()
 	args := query.Args()
 	returnType := query.ReturnType()
 	if returnType != returnTypeWithoutRows {
