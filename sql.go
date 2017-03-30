@@ -38,9 +38,7 @@ func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	result, err := db.formatRows(rows)
-
-	return result, nil
+	return db.formatRows(rows)
 }
 
 func (db *DB) ExecWithoutReturningRows(query Query) (sql.Result, error) {
