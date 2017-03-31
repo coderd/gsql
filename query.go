@@ -13,12 +13,32 @@ const (
 	actionDelete = 4
 )
 
-type Query interface {
+type Queryer interface {
 	String() string
 	Args() []interface{}
 }
 
-type query struct {
+func NewQueryer(queryString string, args ...interface{}) *queryer {
+	return &queryer{
+		queryString: queryString,
+		args:        args,
+	}
+}
+
+type queryer struct {
+	queryString string
+	args        []interface{}
+}
+
+func (qr *queryer) String() string {
+	return qr.queryString
+}
+
+func (qr *queryer) Args() []interface{} {
+	return qr.args
+}
+
+type Query struct {
 	action       int
 	table        string
 	columns      []string
@@ -53,21 +73,21 @@ type whereItem struct {
 	value  interface{}
 }
 
-func NewQuery() *query {
-	return &query{
+func NewQuery() *Query {
+	return &Query{
 		wheres:    []*whereItem{},
 		processed: &processedQuery{},
 		processMu: &sync.Mutex{},
 	}
 }
 
-func (q *query) Table(table string) *query {
+func (q *Query) Table(table string) *Query {
 	q.table = table
 
 	return q
 }
 
-func (q *query) Where(column, op string, value interface{}) *query {
+func (q *Query) Where(column, op string, value interface{}) *Query {
 	q.wheres = append(
 		q.wheres,
 		&whereItem{
@@ -80,7 +100,7 @@ func (q *query) Where(column, op string, value interface{}) *query {
 	return q
 }
 
-func (q *query) OrWhere(column, op string, value interface{}) *query {
+func (q *Query) OrWhere(column, op string, value interface{}) *Query {
 	q.wheres = append(
 		q.wheres,
 		&whereItem{
@@ -93,20 +113,20 @@ func (q *query) OrWhere(column, op string, value interface{}) *query {
 	return q
 }
 
-func (q *query) OrderBy(orders map[string]string) *query {
+func (q *Query) OrderBy(orders map[string]string) *Query {
 	q.orders = orders
 
 	return q
 }
 
-func (q *query) Limit(offset, rowCount int) *query {
+func (q *Query) Limit(offset, rowCount int) *Query {
 	q.offset = offset
 	q.rowCount = rowCount
 
 	return q
 }
 
-func (q *query) Select(columns []string) *query {
+func (q *Query) Select(columns []string) *Query {
 	if len(columns) == 0 {
 		panic("gsql: Query.Select() method requires at least 1 column, got 0")
 	}
@@ -117,7 +137,7 @@ func (q *query) Select(columns []string) *query {
 	return q
 }
 
-func (q *query) Insert(values map[string]interface{}) *query {
+func (q *Query) Insert(values map[string]interface{}) *Query {
 	if len(values) == 0 {
 		panic("gsql: Query.Insert() method requires at least 1 value, got 0")
 	}
@@ -128,7 +148,7 @@ func (q *query) Insert(values map[string]interface{}) *query {
 	return q
 }
 
-func (q *query) Update(values map[string]interface{}) *query {
+func (q *Query) Update(values map[string]interface{}) *Query {
 	if len(values) == 0 {
 		panic("gsql: Query.Update() method requires at least 1 value, got 0")
 	}
@@ -139,25 +159,25 @@ func (q *query) Update(values map[string]interface{}) *query {
 	return q
 }
 
-func (q *query) Delete() *query {
+func (q *Query) Delete() *Query {
 	q.action = actionDelete
 
 	return q
 }
 
-func (q *query) String() string {
+func (q *Query) String() string {
 	q.process()
 
 	return q.processed.queryString
 }
 
-func (q *query) Args() []interface{} {
+func (q *Query) Args() []interface{} {
 	q.process()
 
 	return q.processed.args
 }
 
-func (q *query) process() {
+func (q *Query) process() {
 	q.processMu.Lock()
 	defer q.processMu.Unlock()
 	if q.isProcessed {
@@ -180,7 +200,7 @@ func (q *query) process() {
 	q.isProcessed = true
 }
 
-func (q *query) processSelect() {
+func (q *Query) processSelect() {
 	columns := []string{}
 	for _, column := range q.columns {
 		columns = append(columns, "`"+column+"`")
@@ -205,14 +225,14 @@ func (q *query) processSelect() {
 	q.processed.args = q.processed.whereArgs
 }
 
-func (q *query) processInsert() {
+func (q *Query) processInsert() {
 	q.processInsertValues()
 
 	q.processed.queryString = "INSERT INTO `" + q.table + "` " + q.processed.valueExpr
 	q.processed.args = q.processed.valueArgs
 }
 
-func (q *query) processUpdate() {
+func (q *Query) processUpdate() {
 	q.processUpdateValues()
 	q.processWheres()
 
@@ -236,7 +256,7 @@ func (q *query) processUpdate() {
 	}
 }
 
-func (q *query) processDelete() {
+func (q *Query) processDelete() {
 	q.processWheres()
 
 	queryString := "DELETE FROM " + q.table
@@ -254,9 +274,9 @@ func (q *query) processDelete() {
 	q.processed.args = q.processed.whereArgs
 }
 
-func (q *query) processWheres() {
+func (q *Query) processWheres() {
 	wheresLen := len(q.wheres)
-	if q.wheres == nil || wheresLen == 0 {
+	if wheresLen == 0 {
 		return
 	}
 
@@ -288,9 +308,9 @@ func (q *query) processWheres() {
 	q.processed.whereArgs = args
 }
 
-func (q *query) processInsertValues() {
+func (q *Query) processInsertValues() {
 	valueCount := len(q.insertValues)
-	if q.insertValues == nil || valueCount == 0 {
+	if valueCount == 0 {
 		return
 	}
 
@@ -307,9 +327,9 @@ func (q *query) processInsertValues() {
 	q.processed.valueArgs = args
 }
 
-func (q *query) processUpdateValues() {
+func (q *Query) processUpdateValues() {
 	valueCount := len(q.updateValues)
-	if q.updateValues == nil || valueCount == 0 {
+	if valueCount == 0 {
 		return
 	}
 
@@ -324,7 +344,7 @@ func (q *query) processUpdateValues() {
 	q.processed.valueArgs = args
 }
 
-func (q *query) processOrders() {
+func (q *Query) processOrders() {
 	if len(q.orders) == 0 {
 		return
 	}

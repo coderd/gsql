@@ -2,7 +2,6 @@ package gsql
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
@@ -58,7 +57,7 @@ func TestSelect(t *testing.T) {
 }
 
 func randomEmail() string {
-	return fmt.Sprintf("%d%d@gsql.com", time.Now().UnixNano(), rand.Uint64())
+	return fmt.Sprintf("%d@gsql.com", time.Now().UnixNano())
 }
 
 func TestInsert(t *testing.T) {

@@ -20,7 +20,7 @@ func NewDB(driverName, dataSourceName string) (*DB, error) {
 	return db, nil
 }
 
-func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
+func (db *DB) ExecReturningRows(query Queryer) ([]map[string]interface{}, error) {
 	queryString := query.String()
 	args := query.Args()
 
@@ -36,7 +36,7 @@ func (db *DB) ExecReturningRows(query Query) ([]map[string]interface{}, error) {
 	return db.formatRows(rows)
 }
 
-func (db *DB) ExecWithoutReturningRows(query Query) (sql.Result, error) {
+func (db *DB) ExecWithoutReturningRows(query Queryer) (sql.Result, error) {
 	queryString := query.String()
 	args := query.Args()
 
