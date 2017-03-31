@@ -20,9 +20,9 @@ func NewDB(driverName, dataSourceName string) (*DB, error) {
 	return db, nil
 }
 
-func (db *DB) ExecReturningRows(query Queryer) ([]map[string]interface{}, error) {
-	queryString := query.String()
-	args := query.Args()
+func (db *DB) ExecReturningRows(queryer Queryer) ([]map[string]interface{}, error) {
+	queryString := queryer.String()
+	args := queryer.Args()
 
 	stmt, err := db.stdDB.Prepare(queryString)
 	if err != nil {
@@ -36,9 +36,9 @@ func (db *DB) ExecReturningRows(query Queryer) ([]map[string]interface{}, error)
 	return db.formatRows(rows)
 }
 
-func (db *DB) ExecWithoutReturningRows(query Queryer) (sql.Result, error) {
-	queryString := query.String()
-	args := query.Args()
+func (db *DB) ExecWithoutReturningRows(queryer Queryer) (sql.Result, error) {
+	queryString := queryer.String()
+	args := queryer.Args()
 
 	stmt, err := db.stdDB.Prepare(queryString)
 	if err != nil {
