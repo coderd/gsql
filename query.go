@@ -18,41 +18,24 @@ type Queryer interface {
 	Args() []interface{}
 }
 
-func NewQueryer(queryString string, args ...interface{}) *queryer {
-	return &queryer{
+func NewRawQuery(queryString string, args ...interface{}) *RawQuery {
+	return &RawQuery{
 		queryString: queryString,
 		args:        args,
 	}
 }
 
-type queryer struct {
+type RawQuery struct {
 	queryString string
 	args        []interface{}
 }
 
-func (qr *queryer) String() string {
-	return qr.queryString
+func (rq *RawQuery) String() string {
+	return rq.queryString
 }
 
-func (qr *queryer) Args() []interface{} {
-	return qr.args
-}
-
-type Query struct {
-	action       int
-	table        string
-	columns      []string
-	wheres       []*whereItem
-	orders       map[string]string
-	offset       int
-	rowCount     int
-	insertValues map[string]interface{}
-	updateValues map[string]interface{}
-	returnType   int
-
-	isProcessed bool
-	processMu   *sync.Mutex
-	processed   *processedQuery
+func (rq *RawQuery) Args() []interface{} {
+	return rq.args
 }
 
 type processedQuery struct {
@@ -71,6 +54,23 @@ type whereItem struct {
 	column string
 	op     string
 	value  interface{}
+}
+
+type Query struct {
+	action       int
+	table        string
+	columns      []string
+	wheres       []*whereItem
+	orders       map[string]string
+	offset       int
+	rowCount     int
+	insertValues map[string]interface{}
+	updateValues map[string]interface{}
+	returnType   int
+
+	isProcessed bool
+	processMu   *sync.Mutex
+	processed   *processedQuery
 }
 
 func NewQuery() *Query {

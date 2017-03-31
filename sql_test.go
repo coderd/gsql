@@ -127,3 +127,61 @@ func TestDelete(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestRawQuerySelect(t *testing.T) {
+	db, err := NewDB("mysql", "gsql_rw:1@/test_gsql")
+	if err != nil {
+		t.Error(err)
+	}
+
+	rq := NewRawQuery("SELECT `id`, `email`, `name`, `status`, `updated_at`, `created_at` FROM `user` where `id` < ? AND `status` = ? ORDER BY `id` DESC LIMIT 0, 10", 100000, 0)
+	result, err := db.ExecReturningRows(rq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(result) <= 0 {
+		t.Error("Unexpected result")
+	}
+}
+
+func TestRawQueryInsert(t *testing.T) {
+	db, err := NewDB("mysql", "gsql_rw:1@/test_gsql")
+	if err != nil {
+		t.Error(err)
+	}
+
+	nowUnix := time.Now().Unix()
+	rq := NewRawQuery("INSERT INTO `user` (`email`, `name`, `updated_at`, `created_at`) VALUES (?, ?, ?, ?)", randomEmail(), "", nowUnix, nowUnix)
+	_, err = db.ExecWithoutReturningRows(rq)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestRawQueryUpdate(t *testing.T) {
+	db, err := NewDB("mysql", "gsql_rw:1@/test_gsql")
+	if err != nil {
+		t.Error(err)
+	}
+
+	nowUnix := time.Now().Unix()
+	rq := NewRawQuery("UPDATE `user` SET `status` = ?, `updated_at` = ? WHERE `id` > ? ORDER BY `id` DESC LIMIT 2", 1, 1, nowUnix)
+	_, err = db.ExecWithoutReturningRows(rq)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestRawQueryDelete(t *testing.T) {
+	db, err := NewDB("mysql", "gsql_rw:1@/test_gsql")
+	if err != nil {
+		t.Error(err)
+	}
+
+	rq := NewRawQuery("DELETE FROM `user` WHERE `id` > ? ORDER BY `id` DESC LIMIT 1", 1)
+	_, err = db.ExecWithoutReturningRows(rq)
+	if err != nil {
+		t.Error(err)
+	}
+}
