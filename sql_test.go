@@ -6,6 +6,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/stretchr/testify/assert"
 )
 
 /*
@@ -51,9 +52,7 @@ func TestSelect(t *testing.T) {
 	q.Limit(0, 10)
 
 	_, err = db.ExecReturningRows(q)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 }
 
 func randomEmail() string {
@@ -76,10 +75,17 @@ func TestInsert(t *testing.T) {
 		"created_at": nowUnix,
 	})
 
-	_, err = db.ExecWithoutReturningRows(q)
-	if err != nil {
-		t.Error(err)
-	}
+	result, err := db.ExecWithoutReturningRows(q)
+	assert.Nil(t, err)
+
+	lastInsertId, err := result.LastInsertId()
+	assert.Nil(t, err)
+	assert.NotZero(t, lastInsertId)
+
+	rowsAffected, err := result.RowsAffected()
+	assert.Nil(t, err)
+	var expected int64 = 1
+	assert.Equal(t, expected, rowsAffected)
 }
 
 func TestUpdate(t *testing.T) {
@@ -101,10 +107,16 @@ func TestUpdate(t *testing.T) {
 	})
 	q.Limit(0, 2)
 
-	_, err = db.ExecWithoutReturningRows(q)
-	if err != nil {
-		t.Error(err)
-	}
+	result, err := db.ExecWithoutReturningRows(q)
+	assert.Nil(t, err)
+
+	lastInsertId, err := result.LastInsertId()
+	assert.Nil(t, err)
+	assert.Zero(t, lastInsertId)
+
+	rowsAffected, err := result.RowsAffected()
+	assert.Nil(t, err)
+	assert.NotZero(t, rowsAffected)
 }
 
 func TestDelete(t *testing.T) {
@@ -122,10 +134,17 @@ func TestDelete(t *testing.T) {
 	})
 	q.Limit(0, 1)
 
-	_, err = db.ExecWithoutReturningRows(q)
-	if err != nil {
-		t.Error(err)
-	}
+	result, err := db.ExecWithoutReturningRows(q)
+	assert.Nil(t, err)
+
+	lastInsertId, err := result.LastInsertId()
+	assert.Nil(t, err)
+	assert.Zero(t, lastInsertId)
+
+	rowsAffected, err := result.RowsAffected()
+	assert.Nil(t, err)
+	var expected int64 = 1
+	assert.Equal(t, expected, rowsAffected)
 }
 
 func TestRawQuerySelect(t *testing.T) {
@@ -135,14 +154,8 @@ func TestRawQuerySelect(t *testing.T) {
 	}
 
 	rq := NewRawQuery("SELECT `id`, `email`, `name`, `status`, `updated_at`, `created_at` FROM `user` where `id` < ? AND `status` = ? ORDER BY `id` DESC LIMIT 0, 10", 100000, 0)
-	result, err := db.ExecReturningRows(rq)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if len(result) <= 0 {
-		t.Error("Unexpected result")
-	}
+	_, err = db.ExecReturningRows(rq)
+	assert.Nil(t, err)
 }
 
 func TestRawQueryInsert(t *testing.T) {
@@ -153,10 +166,17 @@ func TestRawQueryInsert(t *testing.T) {
 
 	nowUnix := time.Now().Unix()
 	rq := NewRawQuery("INSERT INTO `user` (`email`, `name`, `updated_at`, `created_at`) VALUES (?, ?, ?, ?)", randomEmail(), "", nowUnix, nowUnix)
-	_, err = db.ExecWithoutReturningRows(rq)
-	if err != nil {
-		t.Error(err)
-	}
+	result, err := db.ExecWithoutReturningRows(rq)
+	assert.Nil(t, err)
+
+	lastInsertId, err := result.LastInsertId()
+	assert.Nil(t, err)
+	assert.NotZero(t, lastInsertId)
+
+	rowsAffected, err := result.RowsAffected()
+	assert.Nil(t, err)
+	var expected int64 = 1
+	assert.Equal(t, expected, rowsAffected)
 }
 
 func TestRawQueryUpdate(t *testing.T) {
@@ -167,10 +187,15 @@ func TestRawQueryUpdate(t *testing.T) {
 
 	nowUnix := time.Now().Unix()
 	rq := NewRawQuery("UPDATE `user` SET `status` = ?, `updated_at` = ? WHERE `id` > ? ORDER BY `id` DESC LIMIT 2", 1, 1, nowUnix)
-	_, err = db.ExecWithoutReturningRows(rq)
-	if err != nil {
-		t.Error(err)
-	}
+	result, err := db.ExecWithoutReturningRows(rq)
+	assert.Nil(t, err)
+
+	lastInsertId, err := result.LastInsertId()
+	assert.Nil(t, err)
+	assert.Zero(t, lastInsertId)
+
+	_, err = result.RowsAffected()
+	assert.Nil(t, err)
 }
 
 func TestRawQueryDelete(t *testing.T) {
@@ -180,8 +205,15 @@ func TestRawQueryDelete(t *testing.T) {
 	}
 
 	rq := NewRawQuery("DELETE FROM `user` WHERE `id` > ? ORDER BY `id` DESC LIMIT 1", 1)
-	_, err = db.ExecWithoutReturningRows(rq)
-	if err != nil {
-		t.Error(err)
-	}
+	result, err := db.ExecWithoutReturningRows(rq)
+	assert.Nil(t, err)
+
+	lastInsertId, err := result.LastInsertId()
+	assert.Nil(t, err)
+	assert.Zero(t, lastInsertId)
+
+	rowsAffected, err := result.RowsAffected()
+	assert.Nil(t, err)
+	var expected int64 = 1
+	assert.Equal(t, expected, rowsAffected)
 }
